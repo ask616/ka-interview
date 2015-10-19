@@ -24,15 +24,17 @@ class totalInfectionTest(unittest.TestCase):
 
         for x in range(NUM_CLASSES):
             teacher = self.createUser("teacher_%d" % x)
-
+            self.users.append(teacher)
             for y in range(STUDENTS_PER_CLASS):
                 self.users.append(self.createUser("student_%d.%d" % (x, y), teacher))
 
-    def test_total_infection(self):
+    def test_total_infection_basic(self):
         NEW_VERSION = "Test_0.1"
         main.totalInfection(self.users[0], NEW_VERSION)
-        print(self.users)
         self.assertTrue(self.isVersionChangedUserArray(self.users, NEW_VERSION, 0, 2))
+
+    def test_limited_infection(self):
+        self.assertEqual(main.limitedInfection(self.users, ""), 2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,11 +1,14 @@
 class User(object):
 
-    def __init__(self, name, pass, version="Production 1.1"):
+    def __init__(self, name, password, version="Production_1.1", teacher=None):
         self.username = name
-        self.password = pass
+        self.password = password
         self.teacher = None
         self.students = [] # Adjacency list in graph
         self.version = version
+
+        if teacher is not None:
+            self.addToClass(teacher)
 
     def addToClass(self, teacher):
         self.teacher = teacher
@@ -25,6 +28,9 @@ class User(object):
             return None
         else:
             return self.teacher.students
+
+    def __repr__(self):
+        return 'User(username: %s, teacher: %s, version: %s)' % (self.username, self.teacher, self.version)
 
 
 # Breadth first search to traverse graph containing user

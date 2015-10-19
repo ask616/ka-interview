@@ -25,12 +25,12 @@ class User(object):
     # and more update operations
     def getClassmates(self):
         if self.teacher is None:
-            return None
+            return []
         else:
             return self.teacher.students
 
     def __repr__(self):
-        return 'User(username: %s, teacher: %s, version: %s)' % (self.username, self.teacher, self.version)
+        return 'User(username: %s, version: %s)' % (self.username, self.version)
 
 
 # Breadth first search to traverse graph containing user
@@ -42,6 +42,6 @@ def totalInfection(user, newVersion):
         for usr in frontier:
             usr.setVersion(newVersion) # Set new version for user
             for classmate in usr.getClassmates():
-                if classmate.getVersion != newVersion:
+                if classmate.getVersion() != newVersion:
                     next.append(classmate)
         frontier = next

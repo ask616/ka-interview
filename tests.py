@@ -137,7 +137,7 @@ class limitedInfectionTest(unittest.TestCase):
         self.assertTrue(self.countInfections(self.basic_test_users, NEW_VERSION))
 
     @unittest.expectedFailure
-    def test_limited_infection_basic_3(self):
+    def test_limited_infection_basic_4(self):
 
         NEW_VERSION = "Test_0.1"
         main.limitedInfection(self.basic_test_users, 21, NEW_VERSION)

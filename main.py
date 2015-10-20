@@ -58,7 +58,7 @@ def BFS(user):
             for classmate in usr.getClassmates():
                 if classmate not in users:
                     next.append(classmate)
-                    users.add(teacher)
+                    users.add(classmate)
 
         frontier = next
 
@@ -66,32 +66,11 @@ def BFS(user):
 
 # Breadth first search to traverse graph containing user
 def totalInfection(user, newVersion):
-    # frontier = [user]
-    #
-    # while frontier:
-    #     next = []
-    #     for usr in frontier:
-    #         usr.setVersion(newVersion) # Set new version for user
-    #
-    #         # Infect teacher
-    #         if self.teacher and self.teacher.getVersion() != newVersion:
-    #             next.append(teacher)
-    #
-    #         # Infect students
-    #         for student in self.getStudents():
-    #             if student.getVersion() != newVersion:
-    #                 next.append(student)
-    #
-    #         # Infect classmates
-    #         for classmate in usr.getClassmates():
-    #             if classmate.getVersion() != newVersion:
-    #                 next.append(classmate)
-    #
-    #     frontier = next
     toInfect = BFS(user)
 
     for user in toInfect:
         user.setVersion(newVersion)
+
 
 def printSubsetTable(table, n, target):
     for i in range(n):
@@ -115,7 +94,6 @@ def limitedInfection(users, target, newVersion):
             userGraph = BFS(user)
             passed.update(userGraph)
             # Only need to store the first user in the graph to infect all of it
-            # sizesDict[next(iter(userGraph))] = len(userGraph)
             sizes.append((next(iter(userGraph))), len(userGraph))
 
     if sum(sizesDict.values()) < target:

@@ -35,39 +35,96 @@ class User(object):
     def __repr__(self):
         return 'User(username: %s, version: %s)' % (self.username, self.version)
 
-
-# Breadth first search to traverse graph containing user
-def totalInfection(user, newVersion):
+def BFS(user):
+    users = set()
     frontier = [user]
 
     while frontier:
         next = []
         for usr in frontier:
-            usr.setVersion(newVersion) # Set new version for user
 
-            # TODO: infect teacher
-            # TODO: infect students
+            # Get teacher
+            if usr.teacher and usr.teacher not in users:
+                next.append(usr.teacher)
+                users.add(usr.teacher)
+
+            # Get students
+            for student in usr.getStudents():
+                if student not in users:
+                    next.append(student)
+                    users.add(student)
+
+            # Get classmates
             for classmate in usr.getClassmates():
-                if classmate.getVersion() != newVersion:
+                if classmate not in users:
                     next.append(classmate)
+                    users.add(teacher)
+
         frontier = next
 
-def limitedInfection(users, target):
-    sizes = users
+    return users
+
+# Breadth first search to traverse graph containing user
+def totalInfection(user, newVersion):
+    # frontier = [user]
+    #
+    # while frontier:
+    #     next = []
+    #     for usr in frontier:
+    #         usr.setVersion(newVersion) # Set new version for user
+    #
+    #         # Infect teacher
+    #         if self.teacher and self.teacher.getVersion() != newVersion:
+    #             next.append(teacher)
+    #
+    #         # Infect students
+    #         for student in self.getStudents():
+    #             if student.getVersion() != newVersion:
+    #                 next.append(student)
+    #
+    #         # Infect classmates
+    #         for classmate in usr.getClassmates():
+    #             if classmate.getVersion() != newVersion:
+    #                 next.append(classmate)
+    #
+    #     frontier = next
+    toInfect = BFS(user)
+
+    for user in toInfect:
+        user.setVersion(newVersion)
+
+def printSubsetTable(table, n, target):
+    for i in range(n):
+        out = ""
+        for j in range(target+1):
+            out += str(table[(i, j)])[0] + " "
+        print(out.strip())
+
+def limitedInfection(users, target, newVersion):
+
+    sizes = []
+
+    # Realistically, we would perhaps instead give all members of the same
+    # graph an identical key, so that we could store that key in the
+    # following set instead of each user.
+    passed = set()
 
     # Populate sizes array with sizes of classes and individual users
-    # for user in users:
-    #     if(len(user.students) > 0): # Is a teacher
-    #         sizes.append(len(user.students))
-    #     elif(user.teacher is None and len(user.students) == 0): # Is an individual user
-    #         sizes.append(1)
+    for user in users:
+        if user not in passed:
+            userGraph = BFS(user)
+            passed.update(userGraph)
+            # Only need to store the first user in the graph to infect all of it
+            # sizesDict[next(iter(userGraph))] = len(userGraph)
+            sizes.append((next(iter(userGraph))), len(userGraph))
 
-    if sum(sizes) < target:
+    if sum(sizesDict.values()) < target:
         raise ValueError("Target value is unreachable")
 
-    sizes = [s for s in sizes if s <= target]
+    # Filter to remove graphs that have sizes larger than the target
+    sizes = {s for s in sizes if s[1] <= target}
 
-    n = len(users)
+    n = len(sizes)
 
     subsetTable = {}
 
@@ -75,33 +132,33 @@ def limitedInfection(users, target):
         subsetTable[(i, 0)] = True
 
     for i in range(1, target + 1):
-        subsetTable[(0, i)] = True if i == sizes[0] else False
+        subsetTable[(0, i)] = True if i == sizes[0][1] else False
 
     for i in range(1, n):
         for j in range(1, target + 1):
-            if sizes[i] > j:
+            if sizes[i][1] > j:
                 subsetTable[(i, j)] = subsetTable[(i-1, j)]
             else:
                 if subsetTable[(i-1, j)] == True:
                     subsetTable[(i, j)] = True
                 else:
-                    subsetTable[(i, j)] = subsetTable[(i-1, j-sizes[i])]
+                    subsetTable[(i, j)] = subsetTable[(i-1, j-sizes[i][1])]
 
     subset = []
 
     row, col = n-1, target
-
-    for i in range(n):
-        out = ""
-        for j in range(target+1):
-            out += str(subsetTable[(i, j)])[0] + " "
-        print(out.strip())
-
-
+    subsetTotal = 0
     while col > 0 and row > 0:
         while row >= 1 and subsetTable[(row-1, col)] == True:
             row -= 1
         subset.append(sizes[row])
-        col -= sizes[row]
+        col -= sizes[row][1]
+        subsetTotal += sizes[row][1]
+
+    if subsetTotal != target:
+        raise ValueError("Target value is unreachable")
+
+    for user in subset:
+        limitedInfection(user[0], newVersion)
 
     return subset

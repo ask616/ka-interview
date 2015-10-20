@@ -88,19 +88,21 @@ def limitedInfection(users, target, newVersion):
     # following set instead of each user.
     passed = set()
 
+    sizeTotal = 0
     # Populate sizes array with sizes of classes and individual users
     for user in users:
         if user not in passed:
             userGraph = BFS(user)
             passed.update(userGraph)
             # Only need to store the first user in the graph to infect all of it
-            sizes.append((next(iter(userGraph))), len(userGraph))
+            sizes.append((next(iter(userGraph)), len(userGraph)))
+            sizeTotal += len(userGraph)
 
-    if sum(sizesDict.values()) < target:
+    if sizeTotal < target:
         raise ValueError("Target value is unreachable")
 
     # Filter to remove graphs that have sizes larger than the target
-    sizes = {s for s in sizes if s[1] <= target}
+    sizes = [s for s in sizes if s[1] <= target]
 
     n = len(sizes)
 
@@ -137,6 +139,6 @@ def limitedInfection(users, target, newVersion):
         raise ValueError("Target value is unreachable")
 
     for user in subset:
-        limitedInfection(user[0], newVersion)
+        totalInfection(user[0], newVersion)
 
     return subset

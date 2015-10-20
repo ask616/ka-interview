@@ -52,34 +52,8 @@ def totalInfection(user, newVersion):
                     next.append(classmate)
         frontier = next
 
-def findB(s, c):
-    total, i = 0, 0
-    while total <= c:
-        total += s[i]
-        i += 1
-    return i - 1
-
-def findWBar(s, b):
-    total = 0
-    for x in range(b):
-        total += s[x]
-    return total
-
-def s_set(s_dict, u, val):
-    s_dict[u] = val
-
-def s_get(s_dict, u):
-    return s_dict[u]
-
 def limitedInfection(users, target):
     sizes = users
-    s_t_minus_one = {}
-
-    r = max(users)
-
-    b = findB(users, target)
-
-    wBar = findWBar(users, b)
 
     # Populate sizes array with sizes of classes and individual users
     # for user in users:
@@ -93,4 +67,41 @@ def limitedInfection(users, target):
 
     sizes = [s for s in sizes if s <= target]
 
-    
+    n = len(users)
+
+    subsetTable = {}
+
+    for i in range(n):
+        subsetTable[(i, 0)] = True
+
+    for i in range(1, target + 1):
+        subsetTable[(0, i)] = True if i == sizes[0] else False
+
+    for i in range(1, n):
+        for j in range(1, target + 1):
+            if sizes[i] > j:
+                subsetTable[(i, j)] = subsetTable[(i-1, j)]
+            else:
+                if subsetTable[(i-1, j)] == True:
+                    subsetTable[(i, j)] = True
+                else:
+                    subsetTable[(i, j)] = subsetTable[(i-1, j-sizes[i])]
+
+    subset = []
+
+    row, col = n-1, target
+
+    for i in range(n):
+        out = ""
+        for j in range(target+1):
+            out += str(subsetTable[(i, j)])[0] + " "
+        print(out.strip())
+
+
+    while col > 0 and row > 0:
+        while row >= 1 and subsetTable[(row-1, col)] == True:
+            row -= 1
+        subset.append(sizes[row])
+        col -= sizes[row]
+
+    return subset

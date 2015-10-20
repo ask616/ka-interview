@@ -93,32 +93,4 @@ def limitedInfection(users, target):
 
     sizes = [s for s in sizes if s <= target]
 
-    for u in range(target - r + 1, target + 1):
-        s_set(s_t_minus_one, u, 0)
-
-    for u in range(target + 1, target + r + 1):
-        s_set(s_t_minus_one, u, 1)
-
-    s_set(s_t_minus_one, wBar, b + 1)
-
-    s_t = {}
-
-     for t in range(b, len(sizes)):
-        print(s_t_minus_one)
-        for u in range(target - r + 1, target + r + 1):
-            s_set(s_t, u, s_get(s_t_minus_one, u))
-
-        for u in range(target - r + 1, target + 1):
-            uPrime = u + sizes[t]
-            s_set(s_t, uPrime, max(s_get(s_t, uPrime), s_get(s_t_minus_one, u)))
-
-        for u in range(target + sizes[t], target, -1):
-            for j in range(s_get(s_t, u) - 1, s_get(s_t_minus_one, u) - 1, -1):
-                uPrime = u - sizes[j]
-                s_set(s_t, uPrime, max(s_get(s_t, uPrime), j))
-
-        s_t_minus_one = s_t
-        s_t = {}
-
-
-    return(s_t_minus_one)
+    

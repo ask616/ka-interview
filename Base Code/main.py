@@ -36,7 +36,7 @@ class User(object):
         return 'User(username: %s, version: %s)' % (self.username, self.version)
 
 def BFS(user):
-    users = set()
+    users = {user}
     frontier = [user]
 
     while frontier:

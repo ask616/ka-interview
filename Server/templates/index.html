@@ -18,7 +18,7 @@
         $.ajax({
             url: "http://localhost:5000/users/"
         }).done(function( data ) {
-            userGraph(data)
+            userGraph(JSON.parse(data))
         });
     </script>
 

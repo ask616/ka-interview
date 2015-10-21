@@ -34,7 +34,6 @@ def users():
 
         resp[key].update({'adjacencies' : adjacency})
 
-    print(json.dumps(resp))
     return json.dumps(resp)
 
 

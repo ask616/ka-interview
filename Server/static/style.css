@@ -17,17 +17,17 @@ body{
     width: 650px;
     height: 400px;
     margin:0px auto;
-    margin-top: 40px;
+    margin-top: 20px;
     border-radius: 10px;
 }
 
 .input-group{
     margin:0px auto;
-    margin-top: 20px;
+    margin-top: 5px;
 }
 
 .about{
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .about a{
@@ -37,7 +37,7 @@ body{
 
 .version-list{
     position: relative;
-    left: -25px;
+    left: -20px;
 }
 
 .version-list li{

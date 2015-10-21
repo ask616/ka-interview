@@ -245,4 +245,4 @@ def buildSubset(sizes, target, n, subsetTable):
 ###################
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

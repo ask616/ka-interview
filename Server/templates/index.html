@@ -12,13 +12,13 @@
     <div id="graph"></div>
 
     <div class="about">
-        <p style="width:900px; margin:0 auto;">
-            <b>About and Instructions:</b> The above canvas maps out all the users and their relations within the Khan Academy database.
+        <p style="width:90%; margin:0 auto;">
+            <b>About and Instructions:</b> The above canvas maps out all the users and their relations within the Khan Academy "database."
             You can zoom and drag the canvas to get better views. Before running any sort of infection, you must first input a string
             of text, representing the new version identifier, into the 'New Version' textbox below. Afterwards, to do a total infection,
             simply double click on any node, and the entire graph will become infected. Note that a node will be outlined in black if you
             double click it. If you are having trouble double clicking, zoom in. For a limited infection, similarly input the new version
-            identifier. However, you must additionally input the target number of users you are trying to infect, and then press the Infect!
+            identifier. However, you must additionally input the target number of users you are trying to infect, and then press the Run Limited Infection!
             button. To view a user's current version, simply hover of their node until a tooltip appears. Also note that the nodes are colored
             by version, and that teachers, no matter what version, will always be colored <a target="_blank" href="http://www.color-hex.com/color/f08080">
             Light Coral.</a>
@@ -33,12 +33,12 @@
         <div class="input-group text-center">
             <h4>Limited Infection</h4>
             <input type="text" class="form-control" id="targetInfected" placeholder="Target # to infect">
-            <button class="btn btn-primary" onclick="limitedInfection()" id="limitedInfectionButton" style="margin-top:3px;">Infect!</button>
+            <button class="btn btn-primary" onclick="limitedInfection()" id="limitedInfectionButton" style="margin-top:3px;">Run Limited Infection!</button>
         </div>
     </div>
     <div class="version-stats">
         <ul class="version-list">
-            <li>There are 55 users total</li>
+            <li>There are 55 users total.</li>
         </ul>
     </div>
 

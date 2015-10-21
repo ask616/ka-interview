@@ -37,6 +37,24 @@ function userGraph(userData) {
         }
     }
 
+    var freqs = {};
+    for(var i = 0; i < nodes.length; i++){
+        if(nodes[i].version in freqs){
+            freqs[nodes[i].version]++;
+        } else{
+            freqs[nodes[i].version] = 1;
+        }
+    }
+
+    for (var key in freqs) {
+        //Check to make sure we're not checking a prototype key
+        if (freqs.hasOwnProperty(key)) {
+            var itemString = "<li>There are " + freqs[key] + " users with version " + key + "</li>";
+            $(".version-list").append(itemString);
+        }
+    }
+
+
     var width = 650, height = 400
 
     var force = d3.layout.force()

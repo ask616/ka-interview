@@ -37,18 +37,23 @@ function userGraph(userData) {
         }
     }
 
+    // Create an object to keep track of frequencies of each version
     var freqs = {};
     for(var i = 0; i < nodes.length; i++){
+        //If we've seen this version before, increment counter
         if(nodes[i].version in freqs){
             freqs[nodes[i].version]++;
-        } else{
+        // Otherwise, start a new count at 1
+        } else {
             freqs[nodes[i].version] = 1;
         }
     }
 
+    // After building the object, iterate over it to append to page
     for (var key in freqs) {
         //Check to make sure we're not checking a prototype key
         if (freqs.hasOwnProperty(key)) {
+            // Build string and append to the list at bottom of page
             var itemString = "<li>There are " + freqs[key] + " users with version " + key + "</li>";
             $(".version-list").append(itemString);
         }

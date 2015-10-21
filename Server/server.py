@@ -20,21 +20,7 @@ def home():
 def users():
     resp = requests.get(FIREBASE_URL).json()
 
-    for (key, data) in resp.items():
-        adjacency = []
-        if data['teacher'] != 'None':
-            classmates = resp[data['teacher']]['students'] # Array will be a string
-            adjacency += (eval(classmates))
-            adjacency.append(data['teacher'])
-
-        # Check if has students
-        students = eval(data['students'])
-        if len(students) > 0:
-            adjacency += students
-
-        resp[key].update({'adjacencies' : adjacency})
-
-    return json.dumps(resp)
+    return json.dumps(setAdjacencies(resp))
 
 
 @app.route('/addUser/', methods=['POST'])
@@ -71,7 +57,8 @@ def totalInfection():
         users[user]['version'] = newVersion
 
     req = requests.patch(FIREBASE_URL, data = json.dumps(users))
-    return req.text
+
+    return json.dumps(setAdjacencies(eval(req.text)))
 
 
 @app.route('/limitedInfection/', methods=['POST'])
@@ -199,6 +186,25 @@ def BFS(user, dbData):
         frontier = next
 
     return users
+
+
+def setAdjacencies(resp):
+    for (key, data) in resp.items():
+        adjacency = []
+        if data['teacher'] != 'None':
+            classmates = resp[data['teacher']]['students'] # Array will be a string
+            adjacency += (eval(classmates))
+            adjacency.append(data['teacher'])
+
+        # Check if has students
+        students = eval(data['students'])
+        if len(students) > 0:
+            adjacency += students
+
+        resp[key].update({'adjacencies' : adjacency})
+
+    return resp
+
 
 
 ###################

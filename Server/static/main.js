@@ -1,10 +1,16 @@
+/*
+   Initializes the visualization using data retrieved from server and
+   uses d3 to render
+*/
 function userGraph(userData) {
     var nodes = [];
     var links = [];
     var keys = Object.keys(userData)
 
-    var i = 0
+    var i = 0; //Maintains index of current user
+    //Iterate through every user in the DB
     for (var key in userData) {
+        //Check to make sure we're not checking a prototype key
         if (userData.hasOwnProperty(key)) {
 
             node = {
@@ -16,15 +22,14 @@ function userGraph(userData) {
 
             nodes.push(node)
 
+            //Link up the node to all of its adjacent nodes
             if(userData[key].adjacencies.length > 0){
                 for (ind = 0; ind < userData[key].adjacencies.length; ind++){
                     link = {
                         "source" : i,
                         "target" : keys.indexOf(userData[key].adjacencies[ind])
                     }
-
                     links.push(link)
-
                 }
             }
 
@@ -43,13 +48,10 @@ function userGraph(userData) {
     .scaleExtent([.4, 10])
     .on("zoom", zoomed)
 
-
     var drag = d3.behavior.drag()
-    .origin(function(d) { return d; })
+    .origin(function(d) { return d })
     .on("dragstart", dragstarted)
     .on("drag", dragged)
-    .on("dragend", dragended);
-
 
     var svg = d3.select("#graph").append("svg")
     .attr("width", width)
@@ -76,7 +78,7 @@ function userGraph(userData) {
     .data(links)
     .enter().append("line")
     .attr("class", "link")
-    .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+    .style("stroke-width", function(d) { return 1 });
 
     var node = container.append("g")
     .attr("class", "nodes")
@@ -97,9 +99,10 @@ function userGraph(userData) {
 
     node.append("text")
     .attr("dx", 12)
-    .attr("dy", ".35em")
+    .attr("dy", "3px")
     .text(function(d) { return d.name });
 
+    //Totally infect the graph of any node that is double-clicked
     node.on("dblclick", function(d){
         d3.select(this)
         .select("circle").transition()
@@ -107,32 +110,15 @@ function userGraph(userData) {
         .style("stroke","black");
 
         totalInfection(d.id)
-
     });
 
     force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-        node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        link.attr("x1", function(d) { return d.source.x })
+        .attr("y1", function(d) { return d.source.y })
+        .attr("x2", function(d) { return d.target.x })
+        .attr("y2", function(d) { return d.target.y });
+        node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
     });
-
-    var linkedByIndex = {};
-    links.forEach(function(d) {
-        linkedByIndex[d.source.index + "," + d.target.index] = 1;
-    });
-
-    function isConnected(a, b) {
-        return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index];
-    }
-
-    function dottype(d) {
-        d.x = +d.x;
-        d.y = +d.y;
-        return d;
-    }
 
     function zoomed() {
         container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -140,8 +126,6 @@ function userGraph(userData) {
 
     function dragstarted(d) {
         d3.event.sourceEvent.stopPropagation();
-
-        d3.select(this).classed("dragging", true);
         force.start();
     }
 
@@ -149,12 +133,12 @@ function userGraph(userData) {
         d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
     }
 
-    function dragended(d) {
-        d3.select(this).classed("dragging", false);
-    }
-
 }
 
+/*
+   Total Infection changes the version of the entire graph component containing
+   the user specified by id
+*/
 function totalInfection(id){
     $.ajax({
         type: "POST",
@@ -166,10 +150,15 @@ function totalInfection(id){
         dataType: "json",
         contentType: "application/json"
     }).done(function(data) {
+        // Reload the page to refresh results reflecting infection
         location.reload();
     });
 }
 
+/*
+   Limited Infection changes the version of graphs whose sizes add up exactly
+   to the specified size
+*/
 function limitedInfection(){
     $.ajax({
         type: "POST",
@@ -182,11 +171,14 @@ function limitedInfection(){
         contentType: "application/json"
     }).done(function(data) {
         location.reload();
+        // Reload the page to refresh results reflecting infection
     }).fail(function() {
+        // Error returned indicating that the target cannot be reached
         alert("That target cannot be reached with this set!");
-  })
+    })
 }
 
+// Hash functions from online that convert strings to hex values
 function djb2(str){
     var hash = 5381;
     for (var i = 0; i < str.length; i++) {

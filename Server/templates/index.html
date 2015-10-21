@@ -13,16 +13,16 @@
 
     <div class="form-group text-center">
         <div class="input-group text-center">
+            <h4>New Version</h4>
             <input type="text" class="form-control" id="newVersion" placeholder="New Version (eg Test_1.1)">
         </div>
-    </div>
 
-        <!-- <div class="form-group">
-            <div class="input-group">
-                <input type="text" class="form-control" id="exampleInputAmount" placeholder="New Version (eg Test_1.1)">
-            </div>
-        </div> -->
-    </form>
+        <div class="input-group text-center">
+            <h4>Limited Infection</h4>
+            <input type="text" class="form-control" id="targetInfected" placeholder="Target # to infect">
+            <button class="btn btn-primary" onclick="limitedInfection()" id="limitedInfectionButton" style="margin-top:3px;">Infect!</button>
+        </div>
+    </div>
 
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>

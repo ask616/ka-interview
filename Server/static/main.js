@@ -10,7 +10,8 @@ function userGraph(userData) {
             node = {
                 "name" : userData[key].username,
                 "id" : key,
-                "isTeacher" : eval(userData[key].students).length > 0
+                "isTeacher" : eval(userData[key].students).length > 0,
+                "version" : userData[key].version
             }
 
             nodes.push(node)
@@ -30,11 +31,11 @@ function userGraph(userData) {
             i++;
         }
     }
-    
+
     var width = 650, height = 400
 
     var force = d3.layout.force()
-    .charge(-150)
+    .charge(-100)
     .linkDistance(75)
     .size([width, height]);
 
@@ -87,9 +88,12 @@ function userGraph(userData) {
     .attr("cy", function(d) { return d.y; })
     .call(drag);
 
+    node.append("title")
+    .text(function(d){ return d.version })
+
     node.append("circle")
-    .attr("r", function(d) { return d.weight * 2+ 12; })
-    .style("fill", function(d) { return (d.isTeacher) ? "#BF55EC" : "lightcoral"; });
+    .attr("r", function(d) { return 5 })
+    .style("fill", function(d) { return (d.isTeacher) ? "LightCoral" : hashStringToColor(d.version); });
 
     node.append("text")
     .attr("dx", 12)
@@ -103,8 +107,6 @@ function userGraph(userData) {
         .style("stroke","black");
 
         totalInfection(d.id)
-
-
 
     });
 
@@ -164,9 +166,39 @@ function totalInfection(id){
         dataType: "json",
         contentType: "application/json"
     }).done(function(data) {
-        userGraph(data)
-
-
-
+        location.reload();
     });
+}
+
+function limitedInfection(){
+    $.ajax({
+        type: "POST",
+        url: "http://localhost:5000/limitedInfection/",
+        data: JSON.stringify({
+            "target" : $("#targetInfected").val().trim(),
+            "newVersion" : $("#newVersion").val().trim()
+        }),
+        dataType: "json",
+        contentType: "application/json"
+    }).done(function(data) {
+        location.reload();
+    }).fail(function() {
+        alert("That target cannot be reached with this set!");
+  })
+}
+
+function djb2(str){
+    var hash = 5381;
+    for (var i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    }
+    return hash;
+}
+
+function hashStringToColor(str) {
+    var hash = djb2(str);
+    var r = (hash & 0xFF0000) >> 16;
+    var g = (hash & 0x00FF00) >> 8;
+    var b = hash & 0x0000FF;
+    return "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
 }

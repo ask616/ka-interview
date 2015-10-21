@@ -118,12 +118,19 @@ def limitedInfection():
 
     row, col = n-1, target
     subsetTotal = 0
-    while col > 0 and row > 0:
-        while row >= 1 and subsetTable[(row-1, col)] == True:
+
+    while col > 0 and row >= 0:
+        if(row == 0 and subsetTable[(row, col)] == True):
+            subsetTotal += sizes[row][1]
+            subset.append(sizes[row])
+            break
+        else:
+            while row >= 1 and subsetTable[(row-1, col)] == True:
+                row -= 1
+            subset.append(sizes[row])
+            col -= sizes[row][1]
+            subsetTotal += sizes[row][1]
             row -= 1
-        subset.append(sizes[row])
-        col -= sizes[row][1]
-        subsetTotal += sizes[row][1]
 
     if subsetTotal != target:
         return "Target value is unreachable"

@@ -18,36 +18,25 @@ def home():
 
 @app.route("/users/", methods=['GET'])
 def users():
+    """
+    Returns a list of all users in the database
+    """
     resp = requests.get(FIREBASE_URL).json()
 
     return json.dumps(setAdjacencies(resp))
 
 
-@app.route('/addUser/', methods=['POST'])
-def addUser():
-
-    form = request.get_json()
-
-    username = form['username']
-    password = form['password']
-    teacher = form['teacher']
-    version = form['version']
-
-    newUser = createUser(username, password, teacher, version)
-
-    req = requests.post(FIREBASE_URL, data = newUser)
-
-    return req.text
-
-
 @app.route('/totalInfection/', methods=['POST'])
 def totalInfection():
-
+    """
+    Performs total infection to update the version of every user found
+    in the graph containing the target user. Uses BFS algorithm to find
+    these users.
+    """
     form = request.get_json()
 
     infectedUser = form['infectedUser']
     newVersion = form['newVersion']
-
 
     users = requests.get(FIREBASE_URL).json()
 
@@ -63,7 +52,12 @@ def totalInfection():
 
 @app.route('/limitedInfection/', methods=['POST'])
 def limitedInfection():
-
+    """
+    Performs limited infection to update the version of only the target number
+    of users. This is related to the subset sum problem, which asks whether or
+    not some subset of a list (in this cast, that of the sizes of each graph)
+    can be summed to total the target.
+    """
     form = request.get_json()
 
     target = int(form['target'])
@@ -88,6 +82,8 @@ def limitedInfection():
             sizes.append((next(iter(userGraph)), len(userGraph)))
             sizeTotal += len(userGraph)
 
+    # If the total number of users is less than the target, the target is
+    # impossible to reach.
     if sizeTotal < target:
         return "Target value is unreachable"
 
@@ -96,11 +92,105 @@ def limitedInfection():
 
     n = len(sizes)
 
+    subsetTable = builtSubsetTruthTable(sizes, target, n)
+
+    subset = buildSubset(sizes, target, n, subsetTable)
+
+    # If a subset is found, go through it and infect all the users in the
+    # selected graphs
+    for user in subset:
+        toInfect = BFS(user[0], users)
+
+        for usr in toInfect:
+            users[usr]['version'] = newVersion
+
+    req = requests.patch(FIREBASE_URL, data = json.dumps(users))
+    return req.text
+
+
+
+##################
+# Helper methods #
+##################
+
+def BFS(user, dbData):
+    """
+    Implementation of Breadth-First search, which will traverse through the
+    entire graph containing the user. A set called 'users' is maintained to
+    keep track of which users have been visited already (set searches occur
+    in constant time, hence their use here). The frontier is a list of all
+    users that are currently adjacent to current set of users.
+    """
+    users = {user}
+    frontier = [user]
+
+    while frontier:
+        next = []
+        for usr in frontier:
+
+            # Get teacher if exists
+            if dbData[usr]['teacher'] != 'None' and dbData[usr]['teacher'] not in users:
+                next.append(dbData[usr]['teacher'])
+                users.add(dbData[usr]['teacher'])
+
+            # Get students if exist
+            for student in eval(dbData[usr]['students']):
+                if student not in users:
+                    next.append(student)
+                    users.add(student)
+
+            classmates = []
+            if dbData[usr]['teacher'] != 'None':
+                classmates = eval(dbData[dbData[usr]['teacher']]['students'])
+
+            # Get classmates if exist
+            for classmate in classmates:
+                if classmate not in users:
+                    next.append(classmate)
+                    users.add(classmate)
+
+        # The frontier will now be all these users that we have found
+        frontier = next
+
+    return users
+
+
+def setAdjacencies(resp):
+    """
+    Takes the response JSON from Firebase and adds a field to each user
+    containing a list of all adjacent users in their graph, including
+    teachers, classmates, and students.
+    """
+    for (key, data) in resp.items():
+        adjacency = []
+        if data['teacher'] != 'None':
+            classmates = resp[data['teacher']]['students'] # Array will be a string
+            adjacency += (eval(classmates)) # Add classmates to adjacency list
+            adjacency.append(data['teacher']) # Add teacher to the adjacency list
+
+        # Check if has students
+        students = eval(data['students'])
+        if len(students) > 0:
+            adjacency += students
+
+        resp[key].update({'adjacencies' : adjacency})
+
+    return resp
+
+
+def builtSubsetTruthTable(sizes, target, n):
+    """
+    Builds a boolean table that where each entry (i, j) represents whether or
+    not sum(sizes[0:i]) will total j. The table overall will represent
+    what subsets can be formed to create certain totals.
+    """
     subsetTable = {}
 
+    # First column is all True because the subset [] can always form 0
     for i in range(n):
         subsetTable[(i, 0)] = True
 
+    # First row is true only when sizes[i] == j
     for i in range(1, target + 1):
         subsetTable[(0, i)] = True if i == sizes[0][1] else False
 
@@ -114,6 +204,15 @@ def limitedInfection():
                 else:
                     subsetTable[(i, j)] = subsetTable[(i-1, j-sizes[i][1])]
 
+    return subsetTable
+
+
+def buildSubset(sizes, target, n, subsetTable):
+    """
+    Once the subset truth table is formed, it can be traversed starting from
+    the bottom right corner to trace which values compose the subset that will
+    sum to the intended total
+    """
     subset = []
 
     row, col = n-1, target
@@ -132,86 +231,12 @@ def limitedInfection():
             subsetTotal += sizes[row][1]
             row -= 1
 
+    # If, after traversing, the total is not equal to the target, there is is
+    # no subset that can sum to the target
     if subsetTotal != target:
         return "Target value is unreachable"
 
-    for user in subset:
-        toInfect = BFS(user[0], users)
-
-        for usr in toInfect:
-            users[usr]['version'] = newVersion
-
-    req = requests.patch(FIREBASE_URL, data = json.dumps(users))
-    return req.text
-
-
-
-##################
-# Helper methods #
-##################
-
-def createUser(username, password, teacher, version):
-    user = {}
-    user['username'] = username
-    user['password'] = password
-    user['teacher'] = teacher
-    user['students'] = '[]'
-    user['version'] = version
-
-    return json.dumps(user)
-
-
-def BFS(user, dbData):
-    users = {user}
-    frontier = [user]
-
-    while frontier:
-        next = []
-        for usr in frontier:
-
-            # Get teacher
-            if dbData[usr]['teacher'] != 'None' and dbData[usr]['teacher'] not in users:
-                next.append(dbData[usr]['teacher'])
-                users.add(dbData[usr]['teacher'])
-
-            # Get students
-            for student in eval(dbData[usr]['students']):
-                if student not in users:
-                    next.append(student)
-                    users.add(student)
-
-            classmates = []
-            if dbData[usr]['teacher'] != 'None':
-                classmates = eval(dbData[dbData[usr]['teacher']]['students'])
-
-            # Get classmates
-            for classmate in classmates:
-                if classmate not in users:
-                    next.append(classmate)
-                    users.add(classmate)
-
-        frontier = next
-
-    return users
-
-
-def setAdjacencies(resp):
-    for (key, data) in resp.items():
-        adjacency = []
-        if data['teacher'] != 'None':
-            classmates = resp[data['teacher']]['students'] # Array will be a string
-            adjacency += (eval(classmates))
-            adjacency.append(data['teacher'])
-
-        # Check if has students
-        students = eval(data['students'])
-        if len(students) > 0:
-            adjacency += students
-
-        resp[key].update({'adjacencies' : adjacency})
-
-    return resp
-
+    return subset
 
 
 ###################
